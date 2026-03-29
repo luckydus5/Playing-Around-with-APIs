@@ -1,6 +1,6 @@
 # EcoBreathe - Real-time Global Air Quality Index (AQI) Health Monitor
 
-EcoBreathe is a feature-rich web application that monitors real-time Air Quality Index (AQI) levels across the globe. It helps users — especially vulnerable groups like asthmatics, the elderly, children, and athletes — make informed decisions about outdoor activities based on live environmental data.
+EcoBreathe is a feature-rich web application that monitors real-time Air Quality Index (AQI) levels across the globe. It helps users especially vulnerable groups like asthmatics, the elderly, children, and athletes make informed decisions about outdoor activities based on live environmental data.
 
 The application connects to the [World Air Quality Index (WAQI) API](https://aqicn.org/api/) to fetch city-specific atmospheric data and presents it through an intuitive, interactive dashboard.
 
@@ -75,7 +75,7 @@ Modal opens showing:
 
 ### 1. City Search
 
-When the user types a city name and clicks **Check Data**, the app calls the WAQI Search API. This returns all monitoring stations that match the keyword — for example, searching "London" returns stations across Greater London, each with its own AQI reading. The results are stored in memory so that filtering and sorting can happen instantly without re-fetching.
+When the user types a city name and clicks **Check Data**, the app calls the WAQI Search API. This returns all monitoring stations that match the keyword for example, searching "London" returns stations across Greater London, each with its own AQI reading. The results are stored in memory so that filtering and sorting can happen instantly without re-fetching.
 
 ### 2. AQI Color Classification
 
@@ -92,15 +92,15 @@ Every station's AQI value is classified into one of six severity levels, each wi
 
 ### 3. Filtering & Sorting
 
-Users can filter results by risk level (e.g., show only "Unhealthy" stations) and sort by AQI value (most polluted first or cleanest first). These operations run entirely on the client - no additional API calls are made. The raw station data stays in memory, and the UI re-renders based on the selected filter/sort combination.
+Users can filter results by risk level (e.g., show only "Unhealthy" stations) and sort by AQI value (most polluted first or cleanest first). These operations run entirely on the client no additional API calls are made. The raw station data stays in memory, and the UI re-renders based on the selected filter/sort combination.
 
 ### 4. Station Detail Modal
 
 Clicking **Details** on any station card opens a detailed modal that fetches the station's full feed from the WAQI API. This modal displays three sections:
 
-- **Health Recommendations**: Actionable advice based on the AQI level - what to do, what to avoid, whether to wear a mask, whether it's safe to exercise outdoors.
+- **Health Recommendations**: Actionable advice based on the AQI level what to do, what to avoid, whether to wear a mask, whether it's safe to exercise outdoors.
 - **Pollutant Breakdown**: Individual readings for PM2.5, PM10, O3 (ozone), NO2 (nitrogen dioxide), SO2 (sulfur dioxide), and CO (carbon monoxide), displayed as horizontal colored bars with numeric values.
-- **AQI Forecast Chart**: A Chart.js line graph showing the predicted AQI for the next 5–9 days, with three lines - average, maximum, and minimum - so users can plan ahead.
+- **AQI Forecast Chart**: A Chart.js line graph showing the predicted AQI for the next 5–9 days, with three lines average, maximum, and minimum so users can plan ahead.
 
 ### 5. Interactive Map
 
@@ -116,7 +116,7 @@ The Compare feature lets users enter two city names side by side and see their A
 
 ### 8. Favorites (Saved Cities)
 
-Users can click the heart icon on any station card to bookmark it. Favorites are stored in the browser's `localStorage` and persist across sessions. The favorites drawer (accessible from the header bookmark icon) shows all saved cities as clickable chips — clicking one immediately searches for that city. Users can also remove cities from favorites.
+Users can click the heart icon on any station card to bookmark it. Favorites are stored in the browser's `localStorage` and persist across sessions. The favorites drawer (accessible from the header bookmark icon) shows all saved cities as clickable chips clicking one immediately searches for that city. Users can also remove cities from favorites.
 
 ### 9. Dark Mode
 
@@ -124,7 +124,7 @@ A theme toggle in the header switches between light and dark mode. The preferenc
 
 ### 10. Auto-Refresh
 
-When enabled, the app automatically re-fetches data for the current city every 5 minutes. A visible countdown timer shows seconds until the next refresh. This is useful for users monitoring a location throughout the day — for example, checking if air quality improves in the afternoon.
+When enabled, the app automatically re-fetches data for the current city every 5 minutes. A visible countdown timer shows seconds until the next refresh. This is useful for users monitoring a location throughout the day for example, checking if air quality improves in the afternoon.
 
 ### 11. Toast Notifications
 
@@ -189,7 +189,7 @@ Playing Around with APIs/
 │   ├── app.js              # All client-side logic (770+ lines)
 │   ├── style.css           # Complete styling with dark mode support
 │   └── inde.html           # (unused test file)
-├── server.js               # Express backend (optional — for secure API key proxying)
+├── server.js               # Express backend (optional for secure API key proxying)
 ├── package.json            # Node.js dependencies
 ├── .env                    # Environment variables (API key, port)
 ├── .gitignore              # Git ignore rules
@@ -202,7 +202,7 @@ Playing Around with APIs/
 
 ### Option 1: Live Server Only (Simplest)
 
-This is the quickest way — no Node.js required.
+This is the quickest way no Node.js required.
 
 1. Open the project folder in **VS Code**
 2. Right-click `public/index.html` and select **Open with Live Server**
