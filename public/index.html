@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoBreathe | Global Air Quality Monitor</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container header-inner">
+            <div>
+                <h1><i class="fas fa-leaf"></i> EcoBreathe</h1>
+                <p>Real-time Global Air Quality Index (AQI) Health Monitor</p>
+            </div>
+            <div class="header-actions">
+                <button id="theme-toggle" class="icon-btn" title="Toggle Dark Mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button id="favorites-toggle" class="icon-btn" title="Saved Cities">
+                    <i class="fas fa-bookmark"></i> <span class="fav-count hidden">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Search & Controls -->
+        <section class="controls-section">
+            <form id="monitor-form">
+                <div class="input-wrapper">
+                    <input type="text" id="city-input" placeholder="Enter a city to check air quality (e.g. 'London', 'Tokyo')" autocomplete="off" required>
+                    <button type="button" id="geo-btn" class="geo-btn" title="Use My Location">
+                        <i class="fas fa-crosshairs"></i>
+                    </button>
+                </div>
+
+                <select id="risk-filter" aria-label="Filter by Health Risk">
+                    <option value="all">All Risk Levels</option>
+                    <option value="good">Good (0-50)</option>
+                    <option value="moderate">Moderate (51-100)</option>
+                    <option value="unhealthy">Unhealthy (101+)</option>
+                </select>
+
+                <select id="sort-control" aria-label="Sort Results">
+                    <option value="highest">Sort: Most Polluted</option>
+                    <option value="lowest">Sort: Cleanest</option>
+                </select>
+
+                <button type="submit" class="primary-btn"><i class="fas fa-search-location"></i> Check Data</button>
+            </form>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <button id="compare-btn" class="chip-btn" title="Compare cities"><i class="fas fa-columns"></i> Compare</button>
+                <button id="refresh-toggle" class="chip-btn" title="Auto-refresh data"><i class="fas fa-sync-alt"></i> Auto-Refresh</button>
+                <div id="refresh-indicator" class="hidden refresh-indicator">
+                    <i class="fas fa-circle-notch fa-spin"></i> Refreshing in <span id="refresh-countdown">300</span>s
+                </div>
+            </div>
+        </section>
+
+        <!-- Favorites Drawer -->
+        <section id="favorites-drawer" class="favorites-drawer hidden">
+            <div class="drawer-header">
+                <h3><i class="fas fa-bookmark"></i> Saved Cities</h3>
+                <button id="close-favorites" class="icon-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div id="favorites-list" class="favorites-list">
+                <p class="empty-fav">No saved cities yet. Click the <i class="fas fa-heart"></i> on any station card to save it.</p>
+            </div>
+        </section>
+
+        <!-- Compare Mode Panel -->
+        <section id="compare-panel" class="compare-panel hidden">
+            <div class="drawer-header">
+                <h3><i class="fas fa-columns"></i> Compare Cities</h3>
+                <button id="close-compare" class="icon-btn"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="compare-inputs">
+                <input type="text" id="compare-city-1" placeholder="City 1 (e.g. London)">
+                <span class="vs-badge">VS</span>
+                <input type="text" id="compare-city-2" placeholder="City 2 (e.g. Tokyo)">
+                <button id="run-compare" class="primary-btn"><i class="fas fa-balance-scale"></i> Compare</button>
+            </div>
+            <div id="compare-results" class="compare-results"></div>
+        </section>
+
+        <!-- Interactive Map -->
+        <section class="map-section">
+            <div class="section-header">
+                <h2><i class="fas fa-map-marked-alt"></i> Live AQI Map</h2>
+                <button id="map-toggle" class="chip-btn"><i class="fas fa-chevron-down"></i> Expand</button>
+            </div>
+            <div id="map-container" class="map-container collapsed">
+                <div id="aqi-map"></div>
+            </div>
+        </section>
+
+        <!-- Loading & Error States -->
+        <div id="loader" class="hidden status-message">
+            <i class="fas fa-wind fa-spin"></i> Establishing connection to environmental sensors...
+        </div>
+        <div id="error-message" class="hidden error-box"></div>
+
+        <!-- Results Grid -->
+        <section id="results" class="results-grid"></section>
+
+        <!-- Station Detail Modal -->
+        <div id="station-modal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-station-name">Station Details</h2>
+                    <button id="close-modal" class="icon-btn"><i class="fas fa-times"></i></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Health Advice -->
+                    <div id="health-advice" class="health-advice-box"></div>
+
+                    <!-- Pollutant Breakdown -->
+                    <div class="pollutant-section">
+                        <h3><i class="fas fa-vial"></i> Pollutant Breakdown</h3>
+                        <div id="pollutant-bars" class="pollutant-bars"></div>
+                    </div>
+
+                    <!-- Forecast Chart -->
+                    <div class="forecast-section">
+                        <h3><i class="fas fa-chart-line"></i> AQI Forecast</h3>
+                        <canvas id="forecast-chart" height="200"></canvas>
+                        <p id="no-forecast" class="hidden" style="color:#999; text-align:center;">No forecast data available for this station.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Container -->
+        <div id="toast-container" class="toast-container"></div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>Data provided securely by the <a href="https://aqicn.org/api/" target="_blank">World Air Quality Index Project</a>.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
