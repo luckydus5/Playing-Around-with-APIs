@@ -92,15 +92,15 @@ Every station's AQI value is classified into one of six severity levels, each wi
 
 ### 3. Filtering & Sorting
 
-Users can filter results by risk level (e.g., show only "Unhealthy" stations) and sort by AQI value (most polluted first or cleanest first). These operations run entirely on the client — no additional API calls are made. The raw station data stays in memory, and the UI re-renders based on the selected filter/sort combination.
+Users can filter results by risk level (e.g., show only "Unhealthy" stations) and sort by AQI value (most polluted first or cleanest first). These operations run entirely on the client - no additional API calls are made. The raw station data stays in memory, and the UI re-renders based on the selected filter/sort combination.
 
 ### 4. Station Detail Modal
 
 Clicking **Details** on any station card opens a detailed modal that fetches the station's full feed from the WAQI API. This modal displays three sections:
 
-- **Health Recommendations**: Actionable advice based on the AQI level — what to do, what to avoid, whether to wear a mask, whether it's safe to exercise outdoors.
+- **Health Recommendations**: Actionable advice based on the AQI level - what to do, what to avoid, whether to wear a mask, whether it's safe to exercise outdoors.
 - **Pollutant Breakdown**: Individual readings for PM2.5, PM10, O3 (ozone), NO2 (nitrogen dioxide), SO2 (sulfur dioxide), and CO (carbon monoxide), displayed as horizontal colored bars with numeric values.
-- **AQI Forecast Chart**: A Chart.js line graph showing the predicted AQI for the next 5–9 days, with three lines — average, maximum, and minimum — so users can plan ahead.
+- **AQI Forecast Chart**: A Chart.js line graph showing the predicted AQI for the next 5–9 days, with three lines - average, maximum, and minimum - so users can plan ahead.
 
 ### 5. Interactive Map
 
