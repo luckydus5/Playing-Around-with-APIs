@@ -247,9 +247,9 @@ This section details how the application is deployed to a distributed, highly-av
 ### Server Details
 | Server Role | Server Name | IP Address |
 | ----------- | ----------- | ---------- |
-| Web Server 1| 6979-web-01 | `13.218.57.12` |
-| Web Server 2| 6979-web-02 | `44.202.228.82` |
-| Load Balancer| 6979-lb-01 | `54.89.248.181` |
+| Web Server 1| web-01 | `<WEB01_IP_ADDRESS>` |
+| Web Server 2| web-02 | `<WEB02_IP_ADDRESS>` |
+| Load Balancer| lb-01 | `<LB_IP_ADDRESS>` |
 
 ### Server Architecture
 
@@ -260,12 +260,12 @@ This section details how the application is deployed to a distributed, highly-av
                            │
                     ┌──────▼───────┐
                     │  Lb-01 (LB)  │
-                    │ 54.89.248.181│
+                    │   <LB_IP>    │
                     └──┬────────┬──┘
                        │        │
               ┌────────▼──┐ ┌──▼────────┐
               │  Web-01   │ │  Web-02   │
-              │13.218.57.12││44.202.228.82│
+              │ <WEB_01>  │ │ <WEB_02>  │
               │ Node+Nginx│ │ Node+Nginx│
               └───────────┘ └───────────┘
 ```
@@ -275,7 +275,7 @@ This section details how the application is deployed to a distributed, highly-av
 
 ### Step 1: Deploying to Web Servers (Web01 & Web02)
 
-Connect to both **6979-web-01** and **6979-web-02** via SSH and execute the following steps on **each** server:
+Connect to both **web-01** and **web-02** via SSH and execute the following steps on **each** server:
 
 1. **Install Dependencies**
    ```bash
@@ -335,7 +335,7 @@ Connect to both **6979-web-01** and **6979-web-02** via SSH and execute the foll
 
 ### Step 2: Configuring the Load Balancer (Lb01)
 
-Connect to the load balancer **6979-lb-01** via SSH context:
+Connect to the load balancer **lb-01** via SSH context:
 
 1. **Install Nginx**
    ```bash
@@ -351,8 +351,8 @@ Connect to the load balancer **6979-lb-01** via SSH context:
    Replace its contents with an upstream cluster configuration pointing to the IPs of the two web servers:
    ```nginx
    upstream ecobreathe_cluster {
-       server 13.218.57.12;   # Web-01
-       server 44.202.228.82;  # Web-02
+       server <WEB01_IP_ADDRESS>;   # Web-01
+       server <WEB02_IP_ADDRESS>;  # Web-02
    }
 
    server {
@@ -375,7 +375,7 @@ Connect to the load balancer **6979-lb-01** via SSH context:
 ### Application Testing & Load Balancer Verification
 
 To test that everything distributes correctly:
-1. Open a browser and visit the Load Balancer's IP: `http://54.89.248.181`
+1. Open a browser and visit the Load Balancer's IP: `http://<LB_IP_ADDRESS>`
 2. Ensure the application loads correctly.
 3. *Proof of Load Balancing*: SSH into both `web-01` and `web-02` and monitor their Nginx access logs:
    ```bash
