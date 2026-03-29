@@ -242,82 +242,146 @@ Use this for production deployments where you want to hide the API key from the 
 
 ## Deployment
 
+This section details how the application is deployed to a distributed, highly-available architecture using three servers: two application servers and one load balancer.
+
+### Server Details
+| Server Role | Server Name | IP Address |
+| ----------- | ----------- | ---------- |
+| Web Server 1| 6979-web-01 | `13.218.57.12` |
+| Web Server 2| 6979-web-02 | `44.202.228.82` |
+| Load Balancer| 6979-lb-01 | `54.89.248.181` |
+
 ### Server Architecture
 
-```
+```text
                     ┌──────────────┐
                     │   Internet   │
                     └──────┬───────┘
                            │
                     ┌──────▼───────┐
-                    │     Lb01     │
-                    │  (Nginx LB)  │
+                    │  Lb-01 (LB)  │
+                    │ 54.89.248.181│
                     └──┬────────┬──┘
                        │        │
               ┌────────▼──┐ ┌──▼────────┐
-              │   Web01   │ │   Web02   │
-              │  Express  │ │  Express  │
-              │  + Nginx  │ │  + Nginx  │
+              │  Web-01   │ │  Web-02   │
+              │13.218.57.12││44.202.228.82│
+              │ Node+Nginx│ │ Node+Nginx│
               └───────────┘ └───────────┘
 ```
 
-- **Web01 & Web02**: Express servers running the Node app, managed by PM2, behind Nginx reverse proxies
-- **Lb01**: Nginx load balancer distributing traffic between Web01 and Web02
+- **Web01 & Web02**: Express servers running the Node app, managed by PM2, and served behind Nginx reverse proxies.
+- **Lb01**: Nginx acting as a load balancer distributing incoming traffic sequentially (Round-Robin) between Web01 and Web02.
 
-### Step-by-Step Deployment
+### Step 1: Deploying to Web Servers (Web01 & Web02)
 
-#### 1. Web Servers (Web01 & Web02)
+Connect to both **6979-web-01** and **6979-web-02** via SSH and execute the following steps on **each** server:
 
-Execute on **both** servers:
+1. **Install Dependencies**
+   ```bash
+   sudo apt-get update
+   sudo apt-get install -y nodejs npm git nginx
+   ```
 
-```bash
-# Install dependencies
-sudo apt-get update
-sudo apt-get install -y nodejs npm git nginx
+2. **Clone the Repository**
+   ```bash
+   cd /var/www/html
+   sudo git clone https://github.com/luckydus5/Playing-Around-with-APIs.git ecobreathe
+   cd ecobreathe
+   ```
 
-# Clone and setup
-cd /var/www/html
-sudo git clone <your-repository-url> ecobreathe
-cd ecobreathe
-sudo npm install
+3. **Install Node Modules & Configure Environment**
+   ```bash
+   sudo npm install
+   
+   # Create environment file to protect API Keys
+   sudo nano .env
+   # Add: WAQI_API_KEY=your_waqi_api_token
+   # Add: PORT=3000
+   ```
 
-# Configure environment
-sudo nano .env
-# Add: WAQI_API_KEY=your_token  PORT=3000
+4. **Start Application with PM2**
+   To keep the application running continuously in the background:
+   ```bash
+   sudo npm install -g pm2
+   pm2 start server.js --name "ecobreathe"
+   pm2 startup
+   pm2 save
+   ```
 
-# Start with PM2
-sudo npm install -g pm2
-pm2 start server.js --name "ecobreathe"
-pm2 startup
-pm2 save
+5. **Configure Nginx Reverse Proxy**
+   Replace the default Nginx configuration to forward port 80 traffic to our Node app running on port 3000.
+   ```bash
+   sudo nano /etc/nginx/sites-available/default
+   ```
+   Add:
+   ```nginx
+   server {
+       listen 80;
+       location / {
+           proxy_pass http://localhost:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+   Restart Nginx to apply changes:
+   ```bash
+   sudo systemctl restart nginx
+   ```
 
-# Configure Nginx reverse proxy
-sudo nano /etc/nginx/sites-available/default
-```
+### Step 2: Configuring the Load Balancer (Lb01)
 
-Nginx config for web servers:
-```nginx
-server {
-    listen 80;
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
+Connect to the load balancer **6979-lb-01** via SSH context:
 
-```bash
-sudo systemctl restart nginx
-```
+1. **Install Nginx**
+   ```bash
+   sudo apt-get update
+   sudo apt-get install -y nginx
+   ```
 
-#### 2. Load Balancer (Lb01)
+2. **Configure Nginx for Load Balancing**
+   Open the Nginx default config:
+   ```bash
+   sudo nano /etc/nginx/sites-available/default
+   ```
+   Replace its contents with an upstream cluster configuration pointing to the IPs of the two web servers:
+   ```nginx
+   upstream ecobreathe_cluster {
+       server 13.218.57.12;   # Web-01
+       server 44.202.228.82;  # Web-02
+   }
 
-```bash
-sudo apt-get update
+   server {
+       listen 80;
+       
+       location / {
+           proxy_pass http://ecobreathe_cluster;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       }
+   }
+   ```
+
+3. **Restart Nginx**
+   ```bash
+   sudo systemctl restart nginx
+   ```
+
+### Application Testing & Load Balancer Verification
+
+To test that everything distributes correctly:
+1. Open a browser and visit the Load Balancer's IP: `http://54.89.248.181`
+2. Ensure the application loads correctly.
+3. *Proof of Load Balancing*: SSH into both `web-01` and `web-02` and monitor their Nginx access logs:
+   ```bash
+   tail -f /var/log/nginx/access.log
+   ```
+4. Refresh the page in your browser multiple times. You should see incoming requests alternating evenly (round-robin) between Web01 and Web02's access logs. This guarantees scalability and robustness if one server unexpectedly goes down.
 sudo apt-get install -y nginx
 sudo nano /etc/nginx/nginx.conf
 ```
